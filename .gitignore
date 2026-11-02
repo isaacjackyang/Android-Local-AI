@@ -1,0 +1,16 @@
+.gradle/
+__pycache__/
+*.pyc
+**/build/
+*.so
+*.apk
+*.gguf
+*.jks
+*.log
+*.zip
+signing.properties
+local.properties
+app/src/main/assets/runtime.zip
+app/src/main/assets/source/
+payload/
+downloads/

@@ -1,0 +1,35 @@
+Local AI — independent offline Android application
+
+This app is not an official Termux, Liquid AI, AtomicChat, llama.cpp, or Nous Research release.
+The application package is com.jackyang.localai. It uses an independent signing identity.
+
+Components:
+- Termux terminal-emulator, terminal-view and libtermux.so: termux/termux-app v0.118.3,
+  commit 5b657c6adf4304e5198951ce815fe0205dcac29c. GPL-3.0-only, with Apache-2.0 portions.
+  https://github.com/termux/termux-app/tree/v0.118.3
+  Local change: use text input type for Zhuyin/CJK keyboard composition.
+- Termux native userland: Play Store Termux packages, selected runtime files only.
+  Licenses/copyright notices are included in rootfs/data/data/com.termux/files/usr/share.
+  Build recipes and upstream source locations: https://github.com/termux-play-store/termux-packages
+- PRoot 5.1.107.102: GPL-2.0. https://github.com/termux/proot/tree/v5.1.107.102
+  Built from the tagged source on ARM64 Termux. Local binary packaging changes:
+  libtalloc dependency renamed to libtalloc.so; runpath set to $ORIGIN.
+  PROOT_LOADER selects the app's packaged native loader. No privilege escalation.
+- llama.cpp b12052 (84d9ce0fa): MIT. https://github.com/ggml-org/llama.cpp/releases/tag/b12052
+- Hermes Agent v0.22.6 (f0d94882e89ab8d4098b5bb2f166adfb9ee0a0ab): MIT.
+  https://github.com/NousResearch/hermes-agent/releases/tag/v0.22.6
+  Complete source is included inside the runtime, including its shallow Git repository.
+  Local Android compatibility changes: unavailable hard-link fallback, Android API-32 wheel
+  selection and validation, single concurrent wheel build, native Python dependency linking
+  with updated wheel RECORD hashes, Android store-interpreter path resolution.
+- libheif 1.23.7: LGPL-3.0. https://github.com/strukturag/libheif/releases/tag/v1.23.7
+  Shared library built for Termux; the accompanying build script records CMake options.
+- LFM3-1.7B-Uncensored-AD-Q6_K.gguf: original LFM3 model by Liquid AI,
+  safety-ablated and AD-quantized GGUF by AtomicChat. Model bytes are unchanged by Local AI.
+  https://huggingface.co/AtomicChat/LFM3-1.7B-Uncensored-GGUF
+  The LFM Open License v1.0 is included as LFM-LICENSE.txt and governs this model separately.
+
+Local AI application source is licensed GPL-3.0-only and included in source/local-ai-source.zip.
+Bundled third-party components retain their own licenses. The model is a separate data asset.
+No personal API keys, chat history, SSH keys, or original Termux config are included.
+Any future imported model remains subject to its own terms.

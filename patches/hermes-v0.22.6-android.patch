@@ -1,0 +1,99 @@
+diff --git a/hermes_cli/_launchers.py b/hermes_cli/_launchers.py
+index 90ba2600..068959c5 100644
+--- a/hermes_cli/_launchers.py
++++ b/hermes_cli/_launchers.py
+@@ -144,6 +144,9 @@ def _store_python(runtime: Path) -> Path | None:
+         except (OSError, ValueError):
+             entry = None
+         if entry:
++            # Android tool archives retain the Termux prefix inside the store.
++            if str((packages.get("python") or {}).get("target", "")).endswith("-bionic"):
++                rel = "data/data/com.termux/files/usr/bin/python3"
+             candidate = runtime / entry / rel
+             if candidate.is_file():
+                 return candidate
+diff --git a/hermes_cli/update_lock.py b/hermes_cli/update_lock.py
+index 11813cbd..df79b64a 100644
+--- a/hermes_cli/update_lock.py
++++ b/hermes_cli/update_lock.py
+@@ -1455,6 +1455,8 @@ def _publish_exclusive(path: Path, body: bytes) -> bool:
+             fh.flush()
+             os.fsync(fh.fileno())
+         try:
++            if not hasattr(os, "link"):
++                raise OSError(errno.ENOSYS, "hard links are unavailable in this Python build")
+             os.link(tmp, path)
+             return True
+         except FileExistsError:
+diff --git a/pm/android_link.py b/pm/android_link.py
+new file mode 100644
+index 00000000..b6984573
+--- /dev/null
++++ b/pm/android_link.py
+@@ -0,0 +1,37 @@
++"""Local Termux packaging fix for native wheels with unresolved Python symbols."""
++from pathlib import Path
++import base64
++import csv
++import hashlib
++import io
++import subprocess
++
++
++def link_python_extensions(venv: Path) -> None:
++    site = venv / 'lib/python3.14/site-packages'
++    changed = set()
++    for extension in site.rglob('*.so'):
++        symbols = subprocess.run(['readelf', '-Ws', str(extension)],
++                                 capture_output=True, text=True, check=True).stdout
++        if not any(' UND ' in line and (' Py' in line or ' _Py' in line)
++                   for line in symbols.splitlines()):
++            continue
++        needed = subprocess.run(['patchelf', '--print-needed', str(extension)],
++                                capture_output=True, text=True, check=True).stdout.splitlines()
++        if 'libpython3.14.so' in needed:
++            continue
++        subprocess.run(['patchelf', '--add-needed', 'libpython3.14.so', str(extension)], check=True)
++        changed.add(extension.relative_to(site).as_posix())
++    for record in site.glob('*.dist-info/RECORD'):
++        rows = list(csv.reader(io.StringIO(record.read_text())))
++        updated = False
++        for row in rows:
++            if row[0] in changed:
++                data = (site / row[0]).read_bytes()
++                digest = base64.urlsafe_b64encode(hashlib.sha256(data).digest()).rstrip(b'=').decode()
++                row[1:] = ['sha256=' + digest, str(len(data))]
++                updated = True
++        if updated:
++            with record.open('w', newline='') as handle:
++                csv.writer(handle).writerows(rows)
++    print(f'Android: linked {len(changed)} native Python extensions to libpython3.14.so')
+diff --git a/pm/environment.py b/pm/environment.py
+index d62e071b..ebf17d22 100644
+--- a/pm/environment.py
++++ b/pm/environment.py
+@@ -333,6 +333,13 @@ class PythonEnvironment:
+         with tempfile.TemporaryDirectory(prefix="pm-uv-config-") as config:
+             env.update(XDG_CONFIG_HOME=config, XDG_CONFIG_DIRS=config)
+             command = [native(self.uv), *map(native, args)]
++            # Local Android build: uv otherwise uses Python's API-24 build
++            # minimum to reject wheels compiled for this newer device.
++            if sys.platform == "android":
++                env.update(UV_LINK_MODE="copy", UV_CONCURRENT_BUILDS="1",
++                           ANDROID_API_LEVEL="32", CARGO_BUILD_JOBS="2")
++                if args[0] == "sync" or args[:2] == ["pip", "check"]:
++                    command.extend(["--python-platform", "aarch64-linux-android"])
+             if self.no_config and "--no-config" not in command:
+                 command.append("--no-config")
+             if self.offline:
+@@ -434,6 +441,10 @@ class PythonEnvironment:
+             "sync", lambda: self._sync_attempt(command, cwd=source, timeout=timeout))
+         if result.returncode:
+             raise classify_uv_failure("sync", result.returncode, result.stderr or result.stdout)
++        if sys.platform == "android":
++            from pm.android_link import link_python_extensions
++
++            link_python_extensions(self.destination)
+ 
+     def _sync_attempt(self, command: list[str], *, cwd: Path, timeout: int) -> subprocess.CompletedProcess:
+         result = self._run(command, cwd=cwd, timeout=timeout)

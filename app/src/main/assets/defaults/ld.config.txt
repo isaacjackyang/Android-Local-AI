@@ -1,0 +1,4 @@
+dir.default = /data
+[default]
+namespace.default.isolated = false
+namespace.default.search.paths = /system/${LIB}:/apex/com.android.runtime/${LIB}/bionic

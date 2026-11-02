@@ -1,0 +1,11 @@
+plugins { id 'com.android.library' }
+android {
+    namespace 'com.termux.terminal'
+    compileSdk 35
+    defaultConfig { minSdk 26 }
+    sourceSets.main {
+        java.srcDirs = ['../../vendor/termux-app/terminal-emulator/src/main/java']
+        jniLibs.srcDirs = ['src/main/jniLibs']
+    }
+    compileOptions { sourceCompatibility JavaVersion.VERSION_1_8; targetCompatibility JavaVersion.VERSION_1_8 }
+}

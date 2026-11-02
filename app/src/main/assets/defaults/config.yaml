@@ -1,0 +1,15 @@
+_config_version: 12
+model:
+  default: LFM3-1.7B-Uncensored-AD-Q6_K.gguf
+  provider: custom
+  base_url: http://127.0.0.1:8081/v1
+  context_length: 71680
+display:
+  interface: cli
+terminal:
+  backend: local
+telemetry:
+  shared_metrics:
+    enabled: false
+    send: false
+    offer_version: 2
