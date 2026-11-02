@@ -7,7 +7,7 @@ Components:
 - Termux terminal-emulator, terminal-view and libtermux.so: termux/termux-app v0.118.3,
   commit 5b657c6adf4304e5198951ce815fe0205dcac29c. GPL-3.0-only, with Apache-2.0 portions.
   https://github.com/termux/termux-app/tree/v0.118.3
-  Local change: use text input type for Zhuyin/CJK keyboard composition.
+  Local change on 2026-11-03: use text input type for Zhuyin/CJK keyboard composition.
 - Termux native userland: Play Store Termux packages, selected runtime files only.
   Licenses/copyright notices are included in rootfs/data/data/com.termux/files/usr/share.
   Build recipes and upstream source locations: https://github.com/termux-play-store/termux-packages
@@ -19,7 +19,7 @@ Components:
 - Hermes Agent v0.22.6 (f0d94882e89ab8d4098b5bb2f166adfb9ee0a0ab): MIT.
   https://github.com/NousResearch/hermes-agent/releases/tag/v0.22.6
   Complete source is included inside the runtime, including its shallow Git repository.
-  Local Android compatibility changes: unavailable hard-link fallback, Android API-32 wheel
+  Local Android compatibility changes on 2026-11-03: unavailable hard-link fallback, Android API-32 wheel
   selection and validation, single concurrent wheel build, native Python dependency linking
   with updated wheel RECORD hashes, Android store-interpreter path resolution.
 - libheif 1.23.7: LGPL-3.0. https://github.com/strukturag/libheif/releases/tag/v1.23.7
